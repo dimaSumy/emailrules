@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<layout>
+
+    <adminhtml_emailrules_index>
+        <reference name="content">
+            <block type="aws_customersecure/adminhtml_email" name="email_rule_block" as="emailsecure.grid" />
+        </reference>
+    </adminhtml_emailrules_index>
+
+    <adminhtml_emailrules_new>
+        <update handle="adminhtml_emailrules_edit" />
+    </adminhtml_emailrules_new>
+
+    <adminhtml_emailrules_edit>
+        <update handle="editor" />
+        <reference name="content">
+            <block type="aws_customersecure/adminhtml_email_edit" name="email_secure_edit" as="emailsecure.edit" />
+        </reference>
+    </adminhtml_emailrules_edit>
+
+</layout>
