@@ -1,0 +1,99 @@
+<?xml version="1.0"?>
+<config>
+    <modules>
+        <Aws_Customersecure>
+            <version>0.0.2</version>
+        </Aws_Customersecure>
+    </modules>
+
+    <global>
+        <models>
+            <aws_customersecure>
+                <class>Aws_Customersecure_Model</class>
+                <resourceModel>aws_customersecure_resource</resourceModel>
+            </aws_customersecure>
+            <aws_customersecure_resource>
+                <class>Aws_Customersecure_Model_Resource</class>
+                <entities>
+                    <aws_email_domain>
+                        <table>aws_email_domain</table>
+                    </aws_email_domain>
+                    <aws_secure_rules>
+                        <table>aws_secure_rules</table>
+                    </aws_secure_rules>
+                </entities>
+            </aws_customersecure_resource>
+        </models>
+        <helpers>
+            <aws_customersecure>
+                <class>Aws_Customersecure_Helper</class>
+            </aws_customersecure>
+        </helpers>
+        <blocks>
+            <aws_customersecure>
+                <class>Aws_Customersecure_Block</class>
+            </aws_customersecure>
+        </blocks>
+        <resources>
+            <aws_customersecure_setup>
+                <setup>
+                    <module>Aws_Customersecure</module>
+                    <class>Mage_Customer_Model_Entity_Setup</class>
+                </setup>
+            </aws_customersecure_setup>
+        </resources>
+
+        <events>
+            <customer_register_success>
+                <observers>
+                    <email_secure>
+                        <class>aws_customersecure/observer</class>
+                        <method>checkDomainExists</method>
+                    </email_secure>
+                </observers>
+            </customer_register_success>
+            <customer_login>
+                <observers>
+                    <do_smth>
+                        <class>aws_customersecure/observer</class>
+                        <method>doSomething</method>
+                    </do_smth>
+                </observers>
+            </customer_login>
+        </events>
+    </global>
+
+    <admin>
+        <routers>
+            <adminhtml>
+                <args>
+                    <modules>
+                        <aws_customersecure before="Mage_Adminhtml">Aws_Customersecure_Adminhtml</aws_customersecure>
+                    </modules>
+                </args>
+            </adminhtml>
+        </routers>
+    </admin>
+
+    <adminhtml>
+        <layout>
+            <updates>
+                <aws_customersecure>
+                    <file>aws/customer_secure.xml</file>
+                </aws_customersecure>
+            </updates>
+        </layout>
+    </adminhtml>
+
+    <frontend>
+        <!--<routers>
+            <customer>
+                <args>
+                    <modules>
+                        <aws_customersecure before="Mage_Customer">Aws_Customersecure</aws_customersecure>
+                    </modules>
+                </args>
+            </customer>
+        </routers>-->
+    </frontend>
+</config>

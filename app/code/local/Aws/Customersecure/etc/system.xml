@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<config>
+    <tabs>
+        <customersecure translate="label" module="aws_customersecure">
+            <label>Customer Email Secure</label>
+            <sort_order>100</sort_order>
+        </customersecure>
+    </tabs>
+    <sections>
+        <customersecure translate="label" module="aws_customersecure">
+            <label>Here will be some info</label>
+            <tab>customersecure</tab>
+            <sort_order>130</sort_order>
+            <show_in_default>1</show_in_default>
+            <show_in_website>1</show_in_website>
+            <show_in_store>1</show_in_store>
+        </customersecure>
+    </sections>
+</config>

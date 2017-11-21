@@ -1,0 +1,121 @@
+{
+  "name": "absolutewebservices/magento_workflow_base_for_mb1_project_1",
+  "version": "1.0.0",
+  "type": "magento-module",
+  "minimum-stability": "dev",
+  "license": "MIT",
+  "description": "Magento project with deployment script (composer.json) to create Magento Composer.",
+  "authors": [
+    {
+      "name": "Aws Team",
+      "email": "team@aws3.net"
+    }
+  ],
+  "require": {
+    "magento-hackathon/magento-composer-installer": "3.0.*",
+    "magento-hackathon/composer-command-integrator": "*",
+    "aydin-hassan/magento-core-composer-installer" : "~1.0",
+    "magento/core": "^1.9.3",
+    "madalinoprea/magneto-debug":"^1.8.1"
+  },
+
+  "suggest":{
+        "n98/magerun":"*",
+  	    "madalinoprea/magneto-debug":"^1.8.1",
+        "aoepeople/aoe_templatehints": "v0.4.1",
+        "aschroder/smtp_pro": "v2.0.5",
+        "magento-hackathon/hackathon_magemonitoring": "^2.1.4",
+         "avstudnitz/scopehint": "^0.6",
+    "tim-reynolds/magento-qconfig": "1.0",
+    "aoepeople/aoe_scheduler": "^1",
+    "aschroder/smtp_pro": "^2",
+    "gordonlesti/lesti_fpc": "^1",
+    "jeroenvermeulen/solarium": "v1.6.9-beta",
+    "absolutewebservices/magento-1.x-ext-a-aws-magento-advanced-code-editor":"dev-master",
+    "absolutewebservices/magento-1.x-ext-a-aws-migration-cms-content":"dev-master",
+    "absolutewebservices/magento-1.x-ext-a-aws-frontendguide":"^1.0.0"
+   },
+
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "http://packages.firegento.com"
+    },
+    {
+      "type": "composer",
+      "url": "http://composer.stores.aws3.net/packages.json"
+    }
+  ],
+
+  "extra": {
+    "magento-root-dir": "./",
+    "magento-deploystrategy": "symlink",
+    "magento-force": true,
+    "auto-append-gitignore": true,
+    "magento-core-deploy" : {
+      "ignore-directories": [
+        "/vendor",
+        "/node_modules",
+        "app/design/frontend/base",
+        "app/design/frontend/rwd",
+        "app/design/adminhtml/default",
+        "app/etc/local.xml.template",
+        "app/etc/local.xml.additional",
+        "app/etc/config.xml",
+        "app/etc/modules/Mage_XmlConnect.xml",
+        "app/etc/modules/Mage_Weee.xml",
+        "app/etc/modules/Cm_RedisSession.xml",
+        "app/etc/modules/Mage_ConfigurableSwatches.xml",
+        "app/etc/modules/Mage_ImportExport.xml",
+        "app/etc/modules/Phoenix_Moneybookers.xml",
+        "app/etc/modules/Mage_PageCache.xml",
+        "app/etc/modules/Mage_Api.xml",
+        "app/etc/modules/Mage_Captcha.xml",
+        "app/etc/modules/Mage_Downloadable.xml",
+        "app/etc/modules/Mage_All.xml",
+        "app/etc/modules/Mage_Api2.xml",
+        "app/etc/modules/Mage_CurrencySymbol.xml",
+        "app/etc/modules/Mage_Authorizenet.xml",
+        "app/etc/modules/Mage_Oauth.xml",
+        "app/etc/modules/Mage_Compiler.xml",
+        "app/etc/modules/Mage_Connect.xml",
+        "app/etc/modules/Mage_Widget.xml",
+        "app/etc/modules/Mage_Persistent.xml",
+        "app/etc/modules/Mage_Centinel.xml",
+        "app/etc/modules/Mage_Bundle.xml",
+        "app/locale/",
+        "app/code/community/Cm",
+        "app/bootstrap.php",
+        "app/Mage.php",
+        "cron.php",
+        "favicon.ico",
+        "/lib",
+        "/js",
+        "skin/install/default",
+        "skin/adminhtml/default",
+        "skin/frontend/default",
+        "skin/frontend/base",
+        "skin/frontend/rwd",
+        "/errors",
+        "media/xmlconnect",
+        "media/dhl",
+        "media/downloadable",
+        "media/customer",
+        "app/code/core/Mage",
+        "app/code/core/Zend",
+        "app/code/core/Enterprise",
+        "/dev",
+        "/.idea",
+        "composer.phar",
+        "composer.lock",
+        "var/cache",
+        "var/session",
+        "app/etc/local.xml",
+        "var/report"
+      ]
+    }
+  },
+  "config": {
+    "secure-http" : false
+  }
+}
