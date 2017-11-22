@@ -9,21 +9,50 @@ class Aws_Customersecure_Model_Observer
         //check if domain extists. if not - add him
         $this->_isEmailGroupExists($domain);
 
-        $ownRules = array();
-        $rules = Mage::getResourceModel('aws_customersecure/secure_collection');
+        $rules   = Mage::getResourceModel('aws_customersecure/secure_collection');
+        $ruleIds = array();
 
+        //check if email domain is the same in email secure rule
         foreach ($rules as $rule) {
-            foreach ($rule->getEmailGroups() as $ruleGroup) {
+            $ruleIds[] = $this->_checkRuleByDomain($rule, $rule->getEmailGroups(), $domain);
+        }
 
-                if ($domain == $ruleGroup['title']) {
-                    $ownRules[] = $rule->getData();
+        // add rules to customer if exists
+        $this->_addRulesToCustomer($customer, $ruleIds);
 
-                }
+        return $this;
+    }
+
+    /**
+     * @param $model Aws_Customersecure_Model_Secure
+     * @param array $emailGroups
+     * @param $domain
+     * @return array
+     */
+    protected function _checkRuleByDomain($model, array $emailGroups, $domain)
+    {
+        $id = '';
+        foreach ($emailGroups as $emailGroup) {
+            if ($domain == $emailGroup['title']) {
+                $id = $model->getId();
             }
         }
-        $ownRules = serialize($ownRules);
+        return $id;
+    }
 
-        return $ownRules;
+    /**
+     * @param $customer
+     * @param array $ruleIds
+     * @return $this
+     */
+    protected function _addRulesToCustomer($customer, array $ruleIds)
+    {
+        if (!empty($ruleIds) && is_array($ruleIds)) {
+            $ruleIds = implode(',', $ruleIds);
+            $customer->setEmailSecureRule($ruleIds)->save();
+        }
+
+        return $this;
     }
 
     /**
@@ -56,18 +85,12 @@ class Aws_Customersecure_Model_Observer
 
     public function doSomething(Varien_Event_Observer $observer)
     {
-        $customer = $observer->getData('customer');
+        /*$customer = $observer->getData('customer');
+        $customerRules = explode(',', $customer->getEmailSecureRule());
+        foreach ($customerRules as $rule) {
+            $model = Mage::getModel('aws_customersecure/secure')->load($rule);
 
-        /*$rules = Mage::getResourceModel('aws_customersecure/secure_collection');
-        foreach ($rules as $rule) {
-            $domains = $rule->getEmailGroups();
-
-            foreach ($domains as $domain) {
-                if ($customerDomain == $domain['title']) {
-
-                }
-            }
-        }*/
-        return;
+        }
+        return;*/
     }
 }

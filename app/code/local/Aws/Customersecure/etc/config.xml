@@ -2,9 +2,22 @@
 <config>
     <modules>
         <Aws_Customersecure>
-            <version>0.0.2</version>
+            <version>0.0.3</version>
         </Aws_Customersecure>
     </modules>
+
+    <stores>
+        <admin>
+            <design>
+                <package>
+                    <name>sumy</name>
+                </package>
+                <theme>
+                    <default>playhf</default>
+                </theme>
+            </design>
+        </admin>
+    </stores>
 
     <global>
         <models>
