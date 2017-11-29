@@ -4,7 +4,7 @@ class Aws_Customersecure_Model_Observer
 {
     public function checkDomainExists(Varien_Event_Observer $observer)
     {
-        $customer = $observer->getData('customer');
+        $customer = $observer->getCustomer();
         $domain   = Mage::helper('aws_customersecure')->getDomainFromEmail($customer->getEmail());
         //check if domain extists. if not - add him
         $this->_isEmailGroupExists($domain);
@@ -69,6 +69,7 @@ class Aws_Customersecure_Model_Observer
             }
         }
         $this->_addDomain($model, $domain);
+        return ;
     }
 
     /**
@@ -83,14 +84,135 @@ class Aws_Customersecure_Model_Observer
         return ;
     }
 
-    public function doSomething(Varien_Event_Observer $observer)
+    /**
+     * Add rule in customer session
+     * @param Varien_Event_Observer $observer
+     * @return $this
+     */
+    public function addRuleToSession(Varien_Event_Observer $observer)
     {
-        /*$customer = $observer->getData('customer');
-        $customerRules = explode(',', $customer->getEmailSecureRule());
-        foreach ($customerRules as $rule) {
-            $model = Mage::getModel('aws_customersecure/secure')->load($rule);
+        $customer      = $observer->getCustomer();
+        $emailRules    = explode(',', $customer->getEmailSecureRule());
+        $domain        = Mage::helper('aws_customersecure')->getDomainFromEmail($customer->getEmail());
 
+        $customerRules = array();
+        foreach ($emailRules as $rule) {
+            $model = Mage::getModel('aws_customersecure/secure')->load($rule);
+            //check for available
+            if ($this->_match($model->getEmailGroups(), $domain, 'title')
+                && $this->_match($model->getCustomerGroups(), $customer->getGroupId(), 'customer_group_id')
+                && $this->_isActive($model->getIsActive())) {
+                //set rules
+                    $customerRules[] = $this->_getRuleForSession($model);
+            }
         }
-        return;*/
+        //Add rules to session
+        Mage::getSingleton('customer/session')->setRules($customerRules);
+
+        return $this;
     }
+
+    /**
+     * Check is page banned and redirect customer
+     * @param Varien_Event_Observer $observer
+     * @return $this
+     */
+    public function showBannedPages(Varien_Event_Observer $observer)
+    {
+        $controller = $observer->getControllerAction();
+        /* @var $controller Mage_Cms_PageController */
+        $session = Mage::getSingleton('customer/session');
+        if (!$session->isLoggedIn()){
+            if (!$session->hasRules()){
+                $session->setRules($this->_getGuestRules());
+            }
+        }
+        //check if homepage
+        $pageId = $controller->getRequest()->getActionName() == 'index'
+            ? Mage::helper('aws_customersecure')->getHomePageId()
+            : $controller->getRequest()->getParams()['page_id'];
+
+        if ($this->_pageBannedForCustomer($pageId)){
+            $session->setPageId($pageId);
+            //redirect customer
+            $controller->getResponse()
+                ->setRedirect(Mage::getUrl('customersecure/banned'))
+                ->sendResponse();
+        }
+        return $this;
+    }
+
+
+    public function deleteRules(Varien_Event_Observer $observer)
+    {
+        Mage::getSingleton('customer/session')->unsetData('rules');
+
+        return $this;
+    }
+
+    /**
+     * Check is needed cms page has banned
+     * @param $pageId
+     * @return bool
+     */
+    protected function _pageBannedForCustomer($pageId)
+    {
+        foreach (Mage::getSingleton('customer/session')->getRules() as $rule) {
+            if (in_array($pageId, $rule['cms_pages'])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Get rules for guests
+     * @return array
+     */
+    protected function _getGuestRules()
+    {
+        $guestRules = array();
+        $collection = Mage::getResourceModel('aws_customersecure/secure_collection')
+            ->addFieldToFilter('is_active', 1)
+            ->addFieldToFilter('customer_groups', array('like'=>'%NOT LOGGED IN%'));
+
+        foreach ($collection as $item) {
+            $guestRules[] = $this->_getRuleForSession($item);
+        }
+        return $guestRules;
+    }
+
+    protected function _getRuleForSession($model)
+    {
+        $rule = array(
+            'cms_pages' => $this->_getPagesIds($model->getCmsPages()),
+            'comment'   => $model->getSecureRule()
+        );
+        return $rule;
+    }
+
+    protected function _isActive($param)
+    {
+        return ($param != 2) ? true : false;
+    }
+
+    protected function _match($fields, $matched, $key)
+    {
+        foreach ($fields as $field) {
+            if ($matched == $field[$key]){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    protected function _getPagesIds($pages)
+    {
+        $ids = array();
+        foreach ($pages as $page) {
+            $ids[] = $page['page_id'];
+        }
+        return $ids;
+    }
+
 }

@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<layout>
+    <customersecure_banned_index>
+        <reference name="content">
+            <block type="aws_customersecure/secure" name="aws_customersecure" as="customer.secure" template="aws/banned.phtml"/>
+        </reference>
+    </customersecure_banned_index>
+</layout>

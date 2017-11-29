@@ -67,12 +67,28 @@
             </customer_register_success>
             <customer_login>
                 <observers>
-                    <do_smth>
+                    <init_rule_for_customer>
                         <class>aws_customersecure/observer</class>
-                        <method>doSomething</method>
-                    </do_smth>
+                        <method>addRuleToSession</method>
+                    </init_rule_for_customer>
                 </observers>
             </customer_login>
+            <controller_action_predispatch_cms>
+                <observers>
+                    <set_redirect_to_customer>
+                        <class>aws_customersecure/observer</class>
+                        <method>showBannedPages</method>
+                    </set_redirect_to_customer>
+                </observers>
+            </controller_action_predispatch_cms>
+            <customer_logout>
+                <observers>
+                    <delete_rules_from_session>
+                        <class>aws_customersecure/observer</class>
+                        <method>deleteRules</method>
+                    </delete_rules_from_session>
+                </observers>
+            </customer_logout>
         </events>
     </global>
 
@@ -99,14 +115,21 @@
     </adminhtml>
 
     <frontend>
-        <!--<routers>
-            <customer>
+        <layout>
+            <updates>
+                <aws_customersecure>
+                    <file>aws/customer_secure.xml</file>
+                </aws_customersecure>
+            </updates>
+        </layout>
+        <routers>
+            <customersecure>
+                <use>standard</use>
                 <args>
-                    <modules>
-                        <aws_customersecure before="Mage_Customer">Aws_Customersecure</aws_customersecure>
-                    </modules>
+                    <module>Aws_Customersecure</module>
+                    <frontName>customersecure</frontName>
                 </args>
-            </customer>
-        </routers>-->
+            </customersecure>
+        </routers>
     </frontend>
 </config>

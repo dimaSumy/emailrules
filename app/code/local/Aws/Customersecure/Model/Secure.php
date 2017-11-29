@@ -2,6 +2,9 @@
 
 class Aws_Customersecure_Model_Secure extends Mage_Core_Model_Abstract
 {
+    /**
+     * Default aliases of fields
+     */
     const CMS_PAGES      = 'cms_pages';
     const EMAIL_GROUP    = 'email_groups';
     const CUSTOMER_GROUP = 'customer_groups';

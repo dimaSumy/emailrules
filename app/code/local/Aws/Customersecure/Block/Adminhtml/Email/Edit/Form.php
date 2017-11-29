@@ -97,7 +97,7 @@ class Aws_Customersecure_Block_Adminhtml_Email_Edit_Form extends Mage_Adminhtml_
             'label'     => $helper->__('Cms Pages'),
             'title'     => $helper->__('Cms Pages'),
             'required'  => true,
-            'values'    => $helper->customToOptionArray($cmsPagesCollection, 'identifier', 'title')
+            'values'    => $helper->customToOptionArray($cmsPagesCollection, 'page_id', 'title')
         ));
 
         $fieldset->addField('is_active', 'select', array(
@@ -116,6 +116,7 @@ class Aws_Customersecure_Block_Adminhtml_Email_Edit_Form extends Mage_Adminhtml_
             'required'  => true,
             'config'    => Mage::getSingleton('cms/wysiwyg_config')->getConfig()
         ));
+
 
         $form->setValues($model->getData());
         $form->setUseContainer(true);

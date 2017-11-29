@@ -80,14 +80,14 @@ class Aws_Customersecure_Adminhtml_EmailrulesController extends Mage_Adminhtml_C
             }
 
             //init model and set data
-            $model->setData($data);
+            $model->addData($data);
 
             //try to save it
             try {
                 $model->save();
                 //display success msg
                 $this->_getSession()->addSuccess($helper->__('The Rule has been saved'));
-                $this->_getSession()->setFormData(false);
+                $this->_getSession()->setFormData(true);
 
                 //check if save and continue
                 if ($this->getRequest()->getParam('back')){

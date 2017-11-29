@@ -9,17 +9,19 @@ class Aws_Customersecure_Helper_Data extends Mage_Core_Helper_Abstract
     const DISABLED  = 2;
 
     /**
-     * default aliases of fields
+     * Get email domain string
+     * @param $email
+     * @return bool|string
      */
-    const CMS       = 'cms';
-    const EMAIL     = 'email';
-    const CUSTOMER  = 'customer';
-
     public function getDomainFromEmail($email)
     {
         return substr($email, strpos($email, '@')+1);
     }
 
+    /**
+     * Get values for Status "select" field
+     * @return array
+     */
     public function getStatusArray()
     {
         return array(
@@ -29,6 +31,13 @@ class Aws_Customersecure_Helper_Data extends Mage_Core_Helper_Abstract
     }
 
 
+    /**
+     * Get needed multiselect values based on collection
+     * @param $collection
+     * @param string $valueField
+     * @param string $labelField
+     * @return array
+     */
     public function customToOptionArray($collection, $valueField='id', $labelField='name')
     {
         $res = array();
@@ -40,7 +49,7 @@ class Aws_Customersecure_Helper_Data extends Mage_Core_Helper_Abstract
             foreach ($additional as $code => $field) {
                 $data[$code] = $item->getData($field);
             }
-            $data['value'] = serialize(array($valueField => $data['value'],
+            $data['value'] = serialize( array($valueField => $data['value'],
                                              'title'     => $data['label']));
 
             $res[] = $data;
@@ -49,7 +58,27 @@ class Aws_Customersecure_Helper_Data extends Mage_Core_Helper_Abstract
         return $res;
     }
 
-    public function getNormalArray($data)
+    /**
+     * get homepage id
+     * @return int
+     */
+    public function getHomePageId()
+    {
+        $id = Mage::getResourceModel('cms/page_collection')
+            ->addFieldToSelect('page_id')
+            ->addFieldToFilter('identifier', array('eq'=>'home'))
+            ->getFirstItem()
+            ->getPageId();
+
+        return (int)$id;
+    }
+
+    /**
+     * Unserialize db data
+     * @param $data
+     * @return array
+     */
+    protected function _getNormalArray($data)
     {
         $newData = array();
 
@@ -59,6 +88,24 @@ class Aws_Customersecure_Helper_Data extends Mage_Core_Helper_Abstract
         }
 
         return $newData;
+    }
+
+    /**
+     * Get values after load model/collection
+     * @param $model
+     * @param bool $form
+     * @return mixed
+     */
+    public function getUnpackedData($model, $form = false)
+    {
+        $model->setData(Aws_Customersecure_Model_Secure::CMS_PAGES,
+                        $form ? explode(',', $model->getCmsPages()) : $this->_getNormalArray($model->getCmsPages()))
+              ->setData(Aws_Customersecure_Model_Secure::EMAIL_GROUP,
+                        $form ? explode(',', $model->getEmailGroups()) : $this->_getNormalArray($model->getEmailGroups()))
+              ->setData(Aws_Customersecure_Model_Secure::CUSTOMER_GROUP,
+                        $form ? explode(',', $model->getCustomerGroups()) : $this->_getNormalArray($model->getCustomerGroups()));
+
+        return $model;
     }
 
 }
