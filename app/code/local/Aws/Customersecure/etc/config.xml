@@ -51,7 +51,7 @@
             <aws_customersecure_setup>
                 <setup>
                     <module>Aws_Customersecure</module>
-                    <class>Mage_Customer_Model_Entity_Setup</class>
+                    <class>Mage_Core_Model_Resource_Setup</class>
                 </setup>
             </aws_customersecure_setup>
         </resources>

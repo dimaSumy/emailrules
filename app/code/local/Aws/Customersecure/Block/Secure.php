@@ -2,6 +2,10 @@
 
 class Aws_Customersecure_Block_Secure extends Mage_Core_Block_Template
 {
+    /**
+     * Get an error messages for customer
+     * @return array
+     */
     public function getErrorMessages()
     {
         $messages = array();

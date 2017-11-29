@@ -2,6 +2,11 @@
 
 class Aws_Customersecure_Model_Observer
 {
+    /**
+     * Check for domain exists and write data in database
+     * @param Varien_Event_Observer $observer
+     * @return $this
+     */
     public function checkDomainExists(Varien_Event_Observer $observer)
     {
         $customer = $observer->getCustomer();
@@ -16,72 +21,10 @@ class Aws_Customersecure_Model_Observer
         foreach ($rules as $rule) {
             $ruleIds[] = $this->_checkRuleByDomain($rule, $rule->getEmailGroups(), $domain);
         }
-
         // add rules to customer if exists
         $this->_addRulesToCustomer($customer, $ruleIds);
 
         return $this;
-    }
-
-    /**
-     * @param $model Aws_Customersecure_Model_Secure
-     * @param array $emailGroups
-     * @param $domain
-     * @return array
-     */
-    protected function _checkRuleByDomain($model, array $emailGroups, $domain)
-    {
-        $id = '';
-        foreach ($emailGroups as $emailGroup) {
-            if ($domain == $emailGroup['title']) {
-                $id = $model->getId();
-            }
-        }
-        return $id;
-    }
-
-    /**
-     * @param $customer
-     * @param array $ruleIds
-     * @return $this
-     */
-    protected function _addRulesToCustomer($customer, array $ruleIds)
-    {
-        if (!empty($ruleIds) && is_array($ruleIds)) {
-            $ruleIds = implode(',', $ruleIds);
-            $customer->setEmailSecureRule($ruleIds)->save();
-        }
-
-        return $this;
-    }
-
-    /**
-     * Checks is email group of registered user already exists
-     * @param $domain
-     */
-    protected function _isEmailGroupExists($domain)
-    {
-        $model = Mage::getModel('aws_customersecure/email');
-
-        foreach ($model->getCollection() as $item) {
-            if ($item->getEmailGroup() == $domain){
-                return true;
-            }
-        }
-        $this->_addDomain($model, $domain);
-        return ;
-    }
-
-    /**
-     * Add domain into database
-     * @param $model
-     * @param $domain
-     */
-    protected function _addDomain($model, $domain)
-    {
-        $model->setEmailGroup($domain)
-              ->save();
-        return ;
     }
 
     /**
@@ -142,12 +85,33 @@ class Aws_Customersecure_Model_Observer
         return $this;
     }
 
-
+    /**
+     * Delete rules from session after logout
+     * @param Varien_Event_Observer $observer
+     * @return $this
+     */
     public function deleteRules(Varien_Event_Observer $observer)
     {
         Mage::getSingleton('customer/session')->unsetData('rules');
 
         return $this;
+    }
+
+    /**
+     * @param $model
+     * @param array $emailGroups
+     * @param $domain
+     * @return int
+     */
+    protected function _checkRuleByDomain($model, array $emailGroups, $domain)
+    {
+        $id = '';
+        foreach ($emailGroups as $emailGroup) {
+            if ($domain == $emailGroup['title']) {
+                $id = $model->getId();
+            }
+        }
+        return (int)$id;
     }
 
     /**
@@ -182,6 +146,11 @@ class Aws_Customersecure_Model_Observer
         return $guestRules;
     }
 
+    /**
+     * Get compact secure rule data
+     * @param $model
+     * @return array
+     */
     protected function _getRuleForSession($model)
     {
         $rule = array(
@@ -191,11 +160,67 @@ class Aws_Customersecure_Model_Observer
         return $rule;
     }
 
+    /**
+     * @param $customer
+     * @param array $ruleIds
+     * @return $this
+     */
+    protected function _addRulesToCustomer($customer, array $ruleIds)
+    {
+        if (!empty($ruleIds) && is_array($ruleIds)) {
+            $ruleIds = implode(',', $ruleIds);
+            $customer->setEmailSecureRule($ruleIds)->save();
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param $domain
+     * @return bool|void
+     */
+    protected function _isEmailGroupExists($domain)
+    {
+        $model = Mage::getModel('aws_customersecure/email');
+
+        foreach ($model->getCollection() as $item) {
+            if ($item->getEmailGroup() == $domain){
+                return true;
+            }
+        }
+        $this->_addDomain($model, $domain);
+        return ;
+    }
+
+    /**
+     * Add domain into database
+     * @param $model
+     * @param $domain
+     */
+    protected function _addDomain($model, $domain)
+    {
+        $model->setEmailGroup($domain)
+            ->save();
+        return ;
+    }
+
+    /**
+     * Check is rule active now
+     * @param $param
+     * @return bool
+     */
     protected function _isActive($param)
     {
         return ($param != 2) ? true : false;
     }
 
+    /**
+     * Check is matched field value
+     * @param $fields
+     * @param $matched
+     * @param $key
+     * @return bool
+     */
     protected function _match($fields, $matched, $key)
     {
         foreach ($fields as $field) {
@@ -206,6 +231,11 @@ class Aws_Customersecure_Model_Observer
         return false;
     }
 
+    /**
+     * Get an array of page ids
+     * @param $pages
+     * @return array
+     */
     protected function _getPagesIds($pages)
     {
         $ids = array();

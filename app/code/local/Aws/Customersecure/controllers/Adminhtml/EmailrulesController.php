@@ -206,6 +206,10 @@ class Aws_Customersecure_Adminhtml_EmailrulesController extends Mage_Adminhtml_C
         $this->_redirect('*/*/index');
     }
 
+    /**
+     * check ACL permissions
+     * @return mixed
+     */
     protected function _isAllowed()
     {
         return Mage::getSingleton('admin/session')->isAllowed('aws_customersecure/secure');
