@@ -2,21 +2,27 @@
 
 class Aws_Customersecure_Block_Secure extends Mage_Core_Block_Template
 {
+    protected $_rules;
+
     /**
      * Get an error messages for customer
      * @return array
      */
-    public function getErrorMessages()
+    public function getRules()
     {
-        $messages = array();
-        $session = Mage::getSingleton('customer/session');
-        foreach ($session->getRules() as $rule) {
-            //add message only for banned pages
-            if (in_array($session->getPageId(), $rule['cms_pages'])) {
-                $messages[] = $rule['comment'];
-            }
+        if (!isset($this->_rules)){
+            $this->_getRules();
         }
-        return $messages;
+        return $this->_rules;
     }
 
+    protected function _getRules()
+    {
+        $ruleIds = array_map('intval', Mage::getSingleton('customer/session')->getRules());
+        $rules = Mage::getModel('aws_customersecure/secure')
+            ->getCollection()
+            ->addFieldToFilter('is_active', 1)
+            ->addFieldToFilter('entity_id', array('in' => $ruleIds));
+        $this->_rules = $rules;
+    }
 }

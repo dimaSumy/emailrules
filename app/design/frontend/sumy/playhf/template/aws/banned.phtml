@@ -1,6 +1,8 @@
-<h3>Sorry, you don't have permission to access on this page</h3>
-<h4>Your error messages: </h4>
-
-<?php foreach ($this->getErrorMessages() as $errorMessage): ?>
-    <p><?php echo $errorMessage ?></p>
-<?php endforeach; ?>
+<?php if ($this->getRules()->getSize()): ?>
+    <h3>Sorry, you don't have permission to access on this page</h3>
+    <p>You have been banned for <?php echo sizeof($this->getRules()) ?> secure rules</p>
+    <h4>Your error messages: </h4>
+    <?php foreach ($this->getRules() as $rule): ?>
+        <p><?php echo $rule->getSecureRule() ?></p>
+    <?php endforeach; ?>
+<?php endif; ?>

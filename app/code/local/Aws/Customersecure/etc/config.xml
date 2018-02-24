@@ -65,14 +65,6 @@
                     </email_secure>
                 </observers>
             </customer_register_success>
-            <customer_login>
-                <observers>
-                    <init_rule_for_customer>
-                        <class>aws_customersecure/observer</class>
-                        <method>addRuleToSession</method>
-                    </init_rule_for_customer>
-                </observers>
-            </customer_login>
             <controller_action_predispatch_cms>
                 <observers>
                     <set_redirect_to_customer>
@@ -81,14 +73,6 @@
                     </set_redirect_to_customer>
                 </observers>
             </controller_action_predispatch_cms>
-            <customer_logout>
-                <observers>
-                    <delete_rules_from_session>
-                        <class>aws_customersecure/observer</class>
-                        <method>deleteRules</method>
-                    </delete_rules_from_session>
-                </observers>
-            </customer_logout>
         </events>
     </global>
 

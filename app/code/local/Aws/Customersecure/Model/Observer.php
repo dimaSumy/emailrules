@@ -14,12 +14,14 @@ class Aws_Customersecure_Model_Observer
         //check if domain extists. if not - add him
         $this->_isEmailGroupExists($domain);
 
-        $rules   = Mage::getResourceModel('aws_customersecure/secure_collection');
+        $rules   = Mage::getModel('aws_customersecure/secure')->getCollection();
         $ruleIds = array();
 
         //check if email domain is the same in email secure rule
         foreach ($rules as $rule) {
-            $ruleIds[] = $this->_checkRuleByDomain($rule, $rule->getEmailGroups(), $domain);
+            if ($result = $this->_checkRuleByDomain($rule, $domain)) {
+                $ruleIds[] = $result;
+            }
         }
         // add rules to customer if exists
         $this->_addRulesToCustomer($customer, $ruleIds);
@@ -27,33 +29,6 @@ class Aws_Customersecure_Model_Observer
         return $this;
     }
 
-    /**
-     * Add rule in customer session
-     * @param Varien_Event_Observer $observer
-     * @return $this
-     */
-    public function addRuleToSession(Varien_Event_Observer $observer)
-    {
-        $customer      = $observer->getCustomer();
-        $emailRules    = explode(',', $customer->getEmailSecureRule());
-        $domain        = Mage::helper('aws_customersecure')->getDomainFromEmail($customer->getEmail());
-
-        $customerRules = array();
-        foreach ($emailRules as $rule) {
-            $model = Mage::getModel('aws_customersecure/secure')->load($rule);
-            //check for available
-            if ($this->_match($model->getEmailGroups(), $domain, 'title')
-                && $this->_match($model->getCustomerGroups(), $customer->getGroupId(), 'customer_group_id')
-                && $this->_isActive($model->getIsActive())) {
-                //set rules
-                    $customerRules[] = $this->_getRuleForSession($model);
-            }
-        }
-        //Add rules to session
-        Mage::getSingleton('customer/session')->setRules($customerRules);
-
-        return $this;
-    }
 
     /**
      * Check is page banned and redirect customer
@@ -62,22 +37,20 @@ class Aws_Customersecure_Model_Observer
      */
     public function showBannedPages(Varien_Event_Observer $observer)
     {
+        $ids = array();
+        /* @var $condition Varien_Object */
+//        $condition = $observer->getCondition();
         $controller = $observer->getControllerAction();
-        /* @var $controller Mage_Cms_PageController */
-        $session = Mage::getSingleton('customer/session');
-        if (!$session->isLoggedIn()){
-            if (!$session->hasRules()){
-                $session->setRules($this->_getGuestRules());
+        $customer = Mage::getSingleton('customer/session')->getCustomer();
+        $pageId = $controller->getRequest()->getParam('page_id');
+        $rules = Mage::getSingleton('customer/session')->isLoggedIn()
+            ? $this->_getCustomerRules($customer, $pageId)
+            : $this->_getGuestRules($pageId);
+        if ($rules->getSize()){
+            foreach ($rules as $rule) {
+                $ids[] = $rule->getId();
             }
-        }
-        //check if homepage
-        $pageId = $controller->getRequest()->getActionName() == 'index'
-            ? Mage::helper('aws_customersecure')->getHomePageId()
-            : $controller->getRequest()->getParams()['page_id'];
-
-        if ($this->_pageBannedForCustomer($pageId)){
-            $session->setPageId($pageId);
-            //redirect customer
+            Mage::getSingleton('customer/session')->setRules($ids);
             $controller->getResponse()
                 ->setRedirect(Mage::getUrl('customersecure/banned'))
                 ->sendResponse();
@@ -85,16 +58,18 @@ class Aws_Customersecure_Model_Observer
         return $this;
     }
 
-    /**
-     * Delete rules from session after logout
-     * @param Varien_Event_Observer $observer
-     * @return $this
-     */
-    public function deleteRules(Varien_Event_Observer $observer)
-    {
-        Mage::getSingleton('customer/session')->unsetData('rules');
 
-        return $this;
+    protected function _getCustomerRules($customer, $pageId)
+    {
+        $ruleIds = explode(',', $customer->getEmailSecureRule());
+        $ruleIds = array_map('intval', $ruleIds);
+        $collection = Mage::getModel('aws_customersecure/secure')
+            ->getCollection()
+            ->addFieldToFilter('is_active', 1)
+            ->addFieldToFilter('entity_id', array('in' => $ruleIds))
+            ->addFieldToFilter('cms_pages', array('like' => "%$pageId%"));
+
+        return $collection;
     }
 
     /**
@@ -103,15 +78,15 @@ class Aws_Customersecure_Model_Observer
      * @param $domain
      * @return int
      */
-    protected function _checkRuleByDomain($model, array $emailGroups, $domain)
+    protected function _checkRuleByDomain($rule, $domain)
     {
         $id = '';
-        foreach ($emailGroups as $emailGroup) {
+        foreach ($rule->getEmailGroups() as $emailGroup) {
             if ($domain == $emailGroup['title']) {
-                $id = $model->getId();
+                $id = $rule->getId();
+                return (int)$id;
             }
         }
-        return (int)$id;
     }
 
     /**
@@ -133,17 +108,18 @@ class Aws_Customersecure_Model_Observer
      * Get rules for guests
      * @return array
      */
-    protected function _getGuestRules()
+    protected function _getGuestRules($pageId)
     {
-        $guestRules = array();
+//        $guestRules = array();
         $collection = Mage::getResourceModel('aws_customersecure/secure_collection')
             ->addFieldToFilter('is_active', 1)
-            ->addFieldToFilter('customer_groups', array('like'=>'%NOT LOGGED IN%'));
+            ->addFieldToFilter('customer_groups', array('like'=>'%NOT LOGGED IN%'))
+            ->addFieldToFilter('cms_pages', array('like' => "%$pageId%"));
 
-        foreach ($collection as $item) {
-            $guestRules[] = $this->_getRuleForSession($item);
-        }
-        return $guestRules;
+//        foreach ($collection as $item) {
+//            $guestRules[] = $this->_getRuleForSession($item);
+//        }
+        return $collection;
     }
 
     /**

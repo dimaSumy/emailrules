@@ -8,7 +8,7 @@ class Aws_Customersecure_Block_Adminhtml_Email_Renderer_Pages extends Mage_Admin
 
         $html = '<ul>';
         foreach ($value as $item) {
-            $html .= '<li>' . $item['title'] . '</li>';
+            $html .= '<li>' . $item['title'] .  '</li>';
         }
         $html .= '</ul>';
 
