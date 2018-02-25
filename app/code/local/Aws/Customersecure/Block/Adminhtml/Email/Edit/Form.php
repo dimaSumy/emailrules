@@ -55,7 +55,9 @@ class Aws_Customersecure_Block_Adminhtml_Email_Edit_Form extends Mage_Adminhtml_
 
         $customerCollection = Mage::getResourceModel('customer/group_collection');
 
-        $cmsPagesCollection = Mage::getResourceModel('cms/page_collection');
+        $cmsPagesCollection = Mage::getResourceModel('cms/page_collection')
+            ->addFieldToFilter('identifier', array('neq' => 'no-route')) // id != no-route
+            ->addFieldToFilter('identifier', array('neq' => 'home'));
 
         $emailGroupCollection = Mage::getResourceModel('aws_customersecure/email_collection');
 
@@ -80,7 +82,6 @@ class Aws_Customersecure_Block_Adminhtml_Email_Edit_Form extends Mage_Adminhtml_
             'label'     => $helper->__('Email Groups'),
             'title'     => $helper->__('Email Groups'),
             'required'  => true,
-            /*'values'    => Mage::getSingleton('aws_customersecure/email')->toOptionArray()*/
             'values'    => $helper->customToOptionArray($emailGroupCollection, 'entity_id', 'email_group')
         ));
 

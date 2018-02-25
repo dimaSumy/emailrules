@@ -39,27 +39,29 @@ class Aws_Customersecure_Model_Observer
     {
         $ids = array();
         /* @var $condition Varien_Object */
-//        $condition = $observer->getCondition();
         $controller = $observer->getControllerAction();
         $customer = Mage::getSingleton('customer/session')->getCustomer();
-        $pageId = $controller->getRequest()->getParam('page_id');
-        $rules = Mage::getSingleton('customer/session')->isLoggedIn()
-            ? $this->_getCustomerRules($customer, $pageId)
-            : $this->_getGuestRules($pageId);
-        if ($rules->getSize()){
-            foreach ($rules as $rule) {
-                $ids[] = $rule->getId();
+        $pageIdentifier = trim($controller->getRequest()->getRequestString(),'/');
+        if ($pageIdentifier){
+            $title = Mage::getModel('cms/page')->load($pageIdentifier, 'identifier')->getTitle();
+            $rules = Mage::getSingleton('customer/session')->isLoggedIn()
+                ? $this->_getCustomerRules($customer, $title)
+                : $this->_getGuestRules($title);
+            if ($rules->getSize()){
+                foreach ($rules as $rule) {
+                    $ids[] = $rule->getId();
+                }
+                Mage::getSingleton('customer/session')->setRules($ids);
+                $controller->getResponse()
+                    ->setRedirect(Mage::getUrl('customersecure/banned'))
+                    ->sendResponse();
             }
-            Mage::getSingleton('customer/session')->setRules($ids);
-            $controller->getResponse()
-                ->setRedirect(Mage::getUrl('customersecure/banned'))
-                ->sendResponse();
         }
         return $this;
     }
 
 
-    protected function _getCustomerRules($customer, $pageId)
+    protected function _getCustomerRules($customer, $title)
     {
         $ruleIds = explode(',', $customer->getEmailSecureRule());
         $ruleIds = array_map('intval', $ruleIds);
@@ -67,7 +69,7 @@ class Aws_Customersecure_Model_Observer
             ->getCollection()
             ->addFieldToFilter('is_active', 1)
             ->addFieldToFilter('entity_id', array('in' => $ruleIds))
-            ->addFieldToFilter('cms_pages', array('like' => "%$pageId%"));
+            ->addFieldToFilter('cms_pages', array('like' => "%$title%"));
 
         return $collection;
     }
@@ -108,13 +110,13 @@ class Aws_Customersecure_Model_Observer
      * Get rules for guests
      * @return array
      */
-    protected function _getGuestRules($pageId)
+    protected function _getGuestRules($title)
     {
 //        $guestRules = array();
         $collection = Mage::getResourceModel('aws_customersecure/secure_collection')
             ->addFieldToFilter('is_active', 1)
             ->addFieldToFilter('customer_groups', array('like'=>'%NOT LOGGED IN%'))
-            ->addFieldToFilter('cms_pages', array('like' => "%$pageId%"));
+            ->addFieldToFilter('cms_pages', array('like' => "%$title%"));
 
 //        foreach ($collection as $item) {
 //            $guestRules[] = $this->_getRuleForSession($item);
