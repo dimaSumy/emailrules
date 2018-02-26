@@ -13,6 +13,11 @@ class Aws_Customersecure_Adminhtml_EmailrulesController extends Mage_Adminhtml_C
         return $this;
     }
 
+    public function gridAction()
+    {
+        $this->loadLayout()->renderLayout();
+    }
+
     public function indexAction()
     {
         $this->_title($this->__('Customer Secure'))->_title($this->__('Email Rules'));

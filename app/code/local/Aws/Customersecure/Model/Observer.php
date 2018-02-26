@@ -9,26 +9,26 @@ class Aws_Customersecure_Model_Observer
      */
     public function checkDomainExists(Varien_Event_Observer $observer)
     {
-        $customer = $observer->getCustomer();
-        $domain   = Mage::helper('aws_customersecure')->getDomainFromEmail($customer->getEmail());
-        //check if domain extists. if not - add him
-        $this->_isEmailGroupExists($domain);
-
-        $rules   = Mage::getModel('aws_customersecure/secure')->getCollection();
-        $ruleIds = array();
-
-        //check if email domain is the same in email secure rule
-        foreach ($rules as $rule) {
-            if ($result = $this->_checkRuleByDomain($rule, $domain)) {
-                $ruleIds[] = $result;
+        $actionName = Mage::app()->getRequest()->getActionName();
+        if ($actionName == 'createpost' || $actionName == 'editPost') {
+            $customer = $observer->getCustomer();
+            $domain   = Mage::helper('aws_customersecure')->getDomainFromEmail($customer->getEmail());
+            //check if domain extists. if not - add him
+            $this->_isEmailGroupExists($domain);
+            //get rules collection and check for rules exists
+            $rules   = Mage::getModel('aws_customersecure/secure')->getCollection();
+            $ruleIds = array();
+            //check if email domain is the same in email secure rule
+            foreach ($rules as $rule) {
+                if ($result = $this->_checkRuleByDomain($rule, $domain)) {
+                    $ruleIds[] = $result;
+                }
             }
+            // add rules to customer if exists
+            $this->_addRulesToCustomer($customer, $ruleIds);
         }
-        // add rules to customer if exists
-        $this->_addRulesToCustomer($customer, $ruleIds);
-
         return $this;
     }
-
 
     /**
      * Check is page banned and redirect customer
@@ -44,6 +44,7 @@ class Aws_Customersecure_Model_Observer
         $pageIdentifier = trim($controller->getRequest()->getRequestString(),'/');
         if ($pageIdentifier){
             $title = Mage::getModel('cms/page')->load($pageIdentifier, 'identifier')->getTitle();
+            //get needed rules collection
             $rules = Mage::getSingleton('customer/session')->isLoggedIn()
                 ? $this->_getCustomerRules($customer, $title)
                 : $this->_getGuestRules($title);
@@ -112,15 +113,11 @@ class Aws_Customersecure_Model_Observer
      */
     protected function _getGuestRules($title)
     {
-//        $guestRules = array();
         $collection = Mage::getResourceModel('aws_customersecure/secure_collection')
             ->addFieldToFilter('is_active', 1)
             ->addFieldToFilter('customer_groups', array('like'=>'%NOT LOGGED IN%'))
             ->addFieldToFilter('cms_pages', array('like' => "%$title%"));
 
-//        foreach ($collection as $item) {
-//            $guestRules[] = $this->_getRuleForSession($item);
-//        }
         return $collection;
     }
 
@@ -147,7 +144,7 @@ class Aws_Customersecure_Model_Observer
     {
         if (!empty($ruleIds) && is_array($ruleIds)) {
             $ruleIds = implode(',', $ruleIds);
-            $customer->setEmailSecureRule($ruleIds)->save();
+            $customer->setEmailSecureRule($ruleIds);/*->save();*/
         }
 
         return $this;
@@ -189,7 +186,7 @@ class Aws_Customersecure_Model_Observer
      */
     protected function _isActive($param)
     {
-        return ($param != 2) ? true : false;
+        return $param != 2;
     }
 
     /**

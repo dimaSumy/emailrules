@@ -2,7 +2,7 @@
     $count = $this->getRules()->getSize() ?>
     <h3>Sorry, you don't have permission to access on this page</h3>
     <p>You have been banned for <?php echo $count ?> secure <?php echo ($count > 1) ? 'pages' : 'page' ?></p>
-    <h4>Your error messages: </h4>
+    <h4>Your error <?php echo ($count > 1) ? 'messages' : 'message' ?>:</h4>
     <?php foreach ($this->getRules() as $rule): ?>
         <p><?php echo $rule->getSecureRule() ?></p>
     <?php endforeach; ?>

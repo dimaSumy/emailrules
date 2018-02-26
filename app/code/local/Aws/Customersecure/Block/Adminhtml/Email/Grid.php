@@ -35,6 +35,12 @@ class Aws_Customersecure_Block_Adminhtml_Email_Grid extends Mage_Adminhtml_Block
     {
         $helper = Mage::helper('aws_customersecure');
 
+        $cmsPagesCollection = Mage::getResourceModel('cms/page_collection')
+            ->addFieldToFilter('identifier', array('neq' => 'no-route')) // id != no-route
+            ->addFieldToFilter('identifier', array('neq' => 'home'));
+        $customerCollection = Mage::getResourceModel('customer/group_collection');
+        $emailGroupCollection = Mage::getResourceModel('aws_customersecure/email_collection');
+
         $this->addColumn('entity_id', array(
             'header'    => $helper->__('ID'),
             'align'     => 'left',
@@ -58,21 +64,30 @@ class Aws_Customersecure_Block_Adminhtml_Email_Grid extends Mage_Adminhtml_Block
             'header'    => $helper->__('Email Groups'),
             'align'     => 'left',
             'index'     => 'email_groups',
-            'renderer'  => 'aws_customersecure/adminhtml_email_renderer_pages'
+            'filter'    => 'aws_customersecure/adminhtml_widget_grid_filter_multiselect',
+            'renderer'  => 'aws_customersecure/adminhtml_email_renderer_pages',
+            'options'   => $helper->customToOptionArray($emailGroupCollection, 'entity_id', 'email_group'),
+            'filter_condition_callback' => array('Aws_Customersecure_Block_Adminhtml_Email_Filter', 'filter')
         ));
 
         $this->addColumn('customer_groups', array(
             'header'    => $helper->__('Customer Groups'),
             'align'     => 'left',
             'index'     => 'customer_groups',
-            'renderer'  => 'aws_customersecure/adminhtml_email_renderer_pages'
+            'filter'    => 'aws_customersecure/adminhtml_widget_grid_filter_multiselect',
+            'renderer'  => 'aws_customersecure/adminhtml_email_renderer_pages',
+            'options'   => $helper->customToOptionArray($customerCollection, 'customer_group_id', 'customer_group_code'),
+            'filter_condition_callback' => array('Aws_Customersecure_Block_Adminhtml_Email_Filter', 'filter')
         ));
 
         $this->addColumn('cms_pages', array(
             'header'    => $helper->__('Cms Pages'),
             'align'     => 'left',
             'index'     => 'cms_pages',
-            'renderer'  => 'aws_customersecure/adminhtml_email_renderer_pages'
+            'filter'    => 'aws_customersecure/adminhtml_widget_grid_filter_multiselect',
+            'renderer'  => 'aws_customersecure/adminhtml_email_renderer_pages',
+            'options'   => $helper->customToOptionArray($cmsPagesCollection, 'page_id', 'title'),
+            'filter_condition_callback' => array('Aws_Customersecure_Block_Adminhtml_Email_Filter', 'filter')//function called in class
         ));
 
         $this->addColumn('secure_rule', array(
@@ -159,5 +174,10 @@ class Aws_Customersecure_Block_Adminhtml_Email_Grid extends Mage_Adminhtml_Block
     public function getRowUrl($row)
     {
         return $this->getUrl('*/*/edit', array('entity_id' => $row->getId()));
+    }
+
+    public function getGridUrl()
+    {
+        return $this->getUrl('*/*/grid', array('_current' => true));
     }
 }

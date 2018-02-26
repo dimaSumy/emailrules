@@ -57,14 +57,22 @@
         </resources>
 
         <events>
-            <customer_register_success>
+            <!--<customer_register_success>-->
+                <!--<observers>-->
+                    <!--<email_secure>-->
+                        <!--<class>aws_customersecure/observer</class>-->
+                        <!--<method>checkDomainExists</method>-->
+                    <!--</email_secure>-->
+                <!--</observers>-->
+            <!--</customer_register_success>-->
+            <customer_save_before>
                 <observers>
-                    <email_secure>
+                    <check_domain_after_email_changed>
                         <class>aws_customersecure/observer</class>
                         <method>checkDomainExists</method>
-                    </email_secure>
+                    </check_domain_after_email_changed>
                 </observers>
-            </customer_register_success>
+            </customer_save_before>
             <controller_action_predispatch_cms>
                 <observers>
                     <set_redirect_to_customer>

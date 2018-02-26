@@ -18,4 +18,8 @@
         </reference>
     </adminhtml_emailrules_edit>
 
+    <adminhtml_emailrules_grid>
+        <remove name="root" />
+        <block type="aws_customersecure/adminhtml_email_grid" name="customersecure_grid_ajax" as="customersecure.grid.ajax" output="toHtml"/>
+    </adminhtml_emailrules_grid>
 </layout>
