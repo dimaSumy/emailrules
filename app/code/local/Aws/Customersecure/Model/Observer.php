@@ -20,8 +20,8 @@ class Aws_Customersecure_Model_Observer
             $ruleIds = array();
             //check if email domain is the same in email secure rule
             foreach ($rules as $rule) {
-                if ($result = $this->_checkRuleByDomain($rule, $domain)) {
-                    $ruleIds[] = $result;
+                if ($this->_checkRuleByDomain($rule, $domain) && $this->_checkRuleByGroup($rule, $customer)) {
+                    $ruleIds[] = $rule->getId();
                 }
             }
             // add rules to customer if exists
@@ -81,15 +81,25 @@ class Aws_Customersecure_Model_Observer
      * @param $domain
      * @return int
      */
-    protected function _checkRuleByDomain($rule, $domain)
+    protected function _checkRuleByDomain(Aws_Customersecure_Model_Secure $rule, $domain)
     {
-        $id = '';
         foreach ($rule->getEmailGroups() as $emailGroup) {
             if ($domain == $emailGroup['title']) {
-                $id = $rule->getId();
-                return (int)$id;
+                return true;
             }
         }
+        return false;
+    }
+
+    protected function _checkRuleByGroup(Aws_Customersecure_Model_Secure $rule, $customer)
+    {
+        foreach ($rule->getCustomerGroups() as $customerGroup) {
+            $code = Mage::getModel('customer/group')->load($customer->getGroupId())->getCustomerGroupCode();
+            if ($code == $customerGroup['title']) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -144,7 +154,7 @@ class Aws_Customersecure_Model_Observer
     {
         if (!empty($ruleIds) && is_array($ruleIds)) {
             $ruleIds = implode(',', $ruleIds);
-            $customer->setEmailSecureRule($ruleIds);/*->save();*/
+            $customer->setEmailSecureRule($ruleIds);
         }
 
         return $this;
@@ -188,36 +198,4 @@ class Aws_Customersecure_Model_Observer
     {
         return $param != 2;
     }
-
-    /**
-     * Check is matched field value
-     * @param $fields
-     * @param $matched
-     * @param $key
-     * @return bool
-     */
-    protected function _match($fields, $matched, $key)
-    {
-        foreach ($fields as $field) {
-            if ($matched == $field[$key]){
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Get an array of page ids
-     * @param $pages
-     * @return array
-     */
-    protected function _getPagesIds($pages)
-    {
-        $ids = array();
-        foreach ($pages as $page) {
-            $ids[] = $page['page_id'];
-        }
-        return $ids;
-    }
-
 }

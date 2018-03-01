@@ -76,6 +76,7 @@ class Aws_Customersecure_Adminhtml_EmailrulesController extends Mage_Adminhtml_C
             $id     = $data['entity_id'];
             $model  = Mage::getModel('aws_customersecure/secure')->load($id);
             $helper = Mage::helper('aws_customersecure');
+            /* @var $helper Aws_Customersecure_Helper_Data */
 
             if (!$model->getId() && $id){
                 $this->_getSession()->addError($helper->__('This rule no longer exists'));
@@ -93,6 +94,8 @@ class Aws_Customersecure_Adminhtml_EmailrulesController extends Mage_Adminhtml_C
                 //display success msg
                 $this->_getSession()->addSuccess($helper->__('The Rule has been saved'));
                 $this->_getSession()->setFormData(true);
+
+                $helper->saveChangedAttributes($model);
 
                 //check if save and continue
                 if ($this->getRequest()->getParam('back')){

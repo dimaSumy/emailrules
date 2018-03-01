@@ -57,14 +57,6 @@
         </resources>
 
         <events>
-            <!--<customer_register_success>-->
-                <!--<observers>-->
-                    <!--<email_secure>-->
-                        <!--<class>aws_customersecure/observer</class>-->
-                        <!--<method>checkDomainExists</method>-->
-                    <!--</email_secure>-->
-                <!--</observers>-->
-            <!--</customer_register_success>-->
             <customer_save_before>
                 <observers>
                     <check_domain_after_email_changed>

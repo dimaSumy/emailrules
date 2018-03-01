@@ -35,10 +35,10 @@ class Aws_Customersecure_Block_Adminhtml_Email_Grid extends Mage_Adminhtml_Block
     {
         $helper = Mage::helper('aws_customersecure');
 
-        $cmsPagesCollection = Mage::getResourceModel('cms/page_collection')
+        $cmsPagesCollection   = Mage::getResourceModel('cms/page_collection')
             ->addFieldToFilter('identifier', array('neq' => 'no-route')) // id != no-route
             ->addFieldToFilter('identifier', array('neq' => 'home'));
-        $customerCollection = Mage::getResourceModel('customer/group_collection');
+        $customerCollection   = Mage::getResourceModel('customer/group_collection');
         $emailGroupCollection = Mage::getResourceModel('aws_customersecure/email_collection');
 
         $this->addColumn('entity_id', array(

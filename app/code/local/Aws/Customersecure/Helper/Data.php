@@ -8,6 +8,9 @@ class Aws_Customersecure_Helper_Data extends Mage_Core_Helper_Abstract
     const ENABLED   = 1;
     const DISABLED  = 2;
 
+    protected $_customerGroups;
+    protected $_emailGroups;
+
     /**
      * Get email domain string
      * @param $email
@@ -24,10 +27,10 @@ class Aws_Customersecure_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function getStatusArray()
     {
-        return array(
+        return [
             self::ENABLED  => Mage::helper('aws_customersecure')->__('Enabled'),
             self::DISABLED => Mage::helper('aws_customersecure')->__('Disabled')
-        );
+        ];
     }
 
 
@@ -40,7 +43,7 @@ class Aws_Customersecure_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function customToOptionArray($collection, $valueField='id', $labelField='name')
     {
-        $res = array();
+        $res = [];
 
         $additional['value'] = $valueField;
         $additional['label'] = $labelField;
@@ -59,28 +62,13 @@ class Aws_Customersecure_Helper_Data extends Mage_Core_Helper_Abstract
     }
 
     /**
-     * get homepage id
-     * @return int
-     */
-    public function getHomePageId()
-    {
-        $id = Mage::getResourceModel('cms/page_collection')
-            ->addFieldToSelect('page_id')
-            ->addFieldToFilter('identifier', array('eq'=>'home'))
-            ->getFirstItem()
-            ->getPageId();
-
-        return (int)$id;
-    }
-
-    /**
      * Unserialize db data
      * @param $data
      * @return array
      */
     protected function _getNormalArray($data)
     {
-        $newData = array();
+        $newData = [];
 
         $data = explode(',', $data);
         foreach ($data as $key => $value) {
@@ -108,4 +96,42 @@ class Aws_Customersecure_Helper_Data extends Mage_Core_Helper_Abstract
         return $model;
     }
 
+    public function saveChangedAttributes(Aws_Customersecure_Model_Secure $rule)
+    {
+        $this->_customerGroups = $rule->getCustomerGroups();
+        $this->_emailGroups = $rule->getEmailGroups();
+
+        $customers = Mage::getModel('customer/customer')
+            ->getCollection()
+            ->addAttributeToSelect('*')
+            ->load();
+
+        foreach ($customers as $customer) {
+            $code = Mage::getModel('customer/group')->load($customer->getGroupId())->getCustomerGroupCode();
+            $domain = $this->getDomainFromEmail($customer->getEmail());
+            $ruleIds = explode(',', $customer->getEmailSecureRule());
+
+            if (is_null($customer->getEmailSecureRule())) {
+                $ruleIds = [];
+            }
+            $key = array_search($rule->getId(), $ruleIds);
+
+            if (is_int($key) && $this->_match($code, $domain)
+                || $key === false && !$this->_match($code, $domain)) {
+                continue;
+            }
+            if (is_int($key)){
+                unset($ruleIds[$key]);
+            } else {
+                array_push($ruleIds, $rule->getId());
+            }
+            $ruleIds = implode(',', $ruleIds);
+            $customer->setEmailSecureRule($ruleIds)->save();
+        }
+    }
+
+    protected function _match($customerGroup, $domain)
+    {
+        return (strpos($this->_customerGroups, $customerGroup) !== false) && (strpos($this->_emailGroups, $domain) !== false);
+    }
 }
