@@ -8,8 +8,6 @@ class Aws_Customersecure_Helper_Data extends Mage_Core_Helper_Abstract
     const ENABLED   = 1;
     const DISABLED  = 2;
 
-    protected $_customerGroups;
-    protected $_emailGroups;
 
     /**
      * Get email domain string
@@ -96,42 +94,23 @@ class Aws_Customersecure_Helper_Data extends Mage_Core_Helper_Abstract
         return $model;
     }
 
-    public function saveChangedAttributes(Aws_Customersecure_Model_Secure $rule)
+    public function getGroupFilter($groups)
     {
-        $this->_customerGroups = $rule->getCustomerGroups();
-        $this->_emailGroups = $rule->getEmailGroups();
-
-        $customers = Mage::getModel('customer/customer')
-            ->getCollection()
-            ->addAttributeToSelect('*')
-            ->load();
-
-        foreach ($customers as $customer) {
-            $code = Mage::getModel('customer/group')->load($customer->getGroupId())->getCustomerGroupCode();
-            $domain = $this->getDomainFromEmail($customer->getEmail());
-            $ruleIds = explode(',', $customer->getEmailSecureRule());
-
-            if (is_null($customer->getEmailSecureRule())) {
-                $ruleIds = [];
+        $groupFilter = [];
+        foreach ($this->_getNormalArray($groups) as $group) {
+            if ($group['customer_group_id'] != 0){
+                $groupFilter[] = ['attribute' => 'group_id', 'eq' => $group['customer_group_id']];
             }
-            $key = array_search($rule->getId(), $ruleIds);
-
-            if (is_int($key) && $this->_match($code, $domain)
-                || $key === false && !$this->_match($code, $domain)) {
-                continue;
-            }
-            if (is_int($key)){
-                unset($ruleIds[$key]);
-            } else {
-                array_push($ruleIds, $rule->getId());
-            }
-            $ruleIds = implode(',', $ruleIds);
-            $customer->setEmailSecureRule($ruleIds)->save();
         }
+        return $groupFilter;
     }
 
-    protected function _match($customerGroup, $domain)
+    public function getEmailFilter($emails)
     {
-        return (strpos($this->_customerGroups, $customerGroup) !== false) && (strpos($this->_emailGroups, $domain) !== false);
+        $emailFilter = [];
+        foreach ($this->_getNormalArray($emails) as $email) {
+            $emailFilter[] = ['attribute' => 'email', 'like' => "%{$email['title']}%"];
+        }
+        return $emailFilter;
     }
 }

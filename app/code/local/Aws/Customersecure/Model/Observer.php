@@ -48,6 +48,7 @@ class Aws_Customersecure_Model_Observer
             $rules = Mage::getSingleton('customer/session')->isLoggedIn()
                 ? $this->_getCustomerRules($customer, $title)
                 : $this->_getGuestRules($title);
+            //if rules exist
             if ($rules->getSize()){
                 foreach ($rules as $rule) {
                     $ids[] = $rule->getId();

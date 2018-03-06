@@ -9,6 +9,10 @@ class Aws_Customersecure_Model_Secure extends Mage_Core_Model_Abstract
     const EMAIL_GROUP    = 'email_groups';
     const CUSTOMER_GROUP = 'customer_groups';
 
+
+    protected $_customerGroups;
+    protected $_emailGroups;
+
     /**
      * Init resource model
      */
@@ -67,5 +71,86 @@ class Aws_Customersecure_Model_Secure extends Mage_Core_Model_Abstract
         }
 
         return $arr;
+    }
+
+    public function saveChangedAttributes(Aws_Customersecure_Helper_Data $helper)
+    {
+        $this->_customerGroups = $this->getCustomerGroups();
+        $this->_emailGroups = $this->getEmailGroups();
+
+        $customers = Mage::getModel('customer/customer')
+            ->getCollection()
+            ->addAttributeToSelect('*');
+
+        foreach ($customers as $customer) {
+            $code = Mage::getModel('customer/group')->load($customer->getGroupId())->getCustomerGroupCode();
+            $domain = $helper->getDomainFromEmail($customer->getEmail());
+            $ruleIds = explode(',', $customer->getEmailSecureRule());
+
+            if (is_null($customer->getEmailSecureRule())) {
+                $ruleIds = [];
+            }
+            $key = array_search($this->getId(), $ruleIds);
+
+            if (is_int($key) && $this->_match($code, $domain)
+                || $key === false && !$this->_match($code, $domain)) {
+                continue;
+            }
+            if (is_int($key)){
+                unset($ruleIds[$key]);
+            } else {
+                array_push($ruleIds, $this->getId());
+            }
+            $ruleIds = implode(',', $ruleIds);
+            $customer->setEmailSecureRule($ruleIds)->save();
+        }
+    }
+
+    public function deleteRuleFromAttribute()
+    {
+        $customers = Mage::getModel('customer/customer')
+            ->getCollection()
+            ->addAttributeToSelect('email_secure_rule')
+            ->addAttributeToFilter('email_secure_rule', ['like' => "%{$this->getId()}%"]);
+
+        foreach ($customers as $customer) {
+            $ruleIds = explode(',', $customer->getEmailSecureRule());
+            if (count($ruleIds) > 1) {
+                $key = array_search($this->getId(), $ruleIds);
+                unset($ruleIds[$key]);
+            } else {
+                $ruleIds = [];
+            }
+            $ruleIds = implode(',', $ruleIds);
+            $customer->setEmailSecureRule($ruleIds)->save();
+        }
+    }
+
+    public function addRuleToAttribute(Aws_Customersecure_Helper_Data $helper)
+    {
+        $groupFilter = $helper->getGroupFilter($this->getCustomerGroups());
+        $emailFilter = $helper->getEmailFilter($this->getEmailGroups());
+
+        $customers = Mage::getModel('customer/customer')
+            ->getCollection()
+            ->addAttributeToSelect('*')
+            ->addAttributeToFilter($groupFilter)
+            ->addAttributeToFilter($emailFilter);
+
+        foreach ($customers as $customer) {
+            $ruleIds = explode(',', $customer->getEmailSecureRule());
+            if (is_null($customer->getEmailSecureRule())) {
+                $ruleIds = [];
+            }
+            array_push($ruleIds, $this->getId());
+            $ruleIds = implode(',', $ruleIds);
+            $customer->setEmailSecureRule($ruleIds)->save();
+        }
+    }
+
+    protected function _match($customerGroup, $domain)
+    {
+        return strpos($this->_customerGroups, $customerGroup) !== false
+            && strpos($this->_emailGroups, $domain) !== false;
     }
 }

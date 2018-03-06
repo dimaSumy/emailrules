@@ -95,7 +95,11 @@ class Aws_Customersecure_Adminhtml_EmailrulesController extends Mage_Adminhtml_C
                 $this->_getSession()->addSuccess($helper->__('The Rule has been saved'));
                 $this->_getSession()->setFormData(true);
 
-                $helper->saveChangedAttributes($model);
+                if (!empty($model->getOrigData())) {
+                    $model->saveChangedAttributes($helper);
+                } else {
+                    $model->addRuleToAttribute($helper);
+                }
 
                 //check if save and continue
                 if ($this->getRequest()->getParam('back')){
@@ -132,6 +136,9 @@ class Aws_Customersecure_Adminhtml_EmailrulesController extends Mage_Adminhtml_C
             try {
                 $model = Mage::getModel('aws_customersecure/secure');
                 $model->load($id)->delete();
+//                if ($model->isDeleted())
+                $model->deleteRuleFromAttribute();
+
                 $this->_getSession()->addSuccess($helper->__('The rule has been deleted.'));
                 $this->_redirect('*/*/');
                 return;
@@ -165,6 +172,8 @@ class Aws_Customersecure_Adminhtml_EmailrulesController extends Mage_Adminhtml_C
                 foreach ($ruleIds as $ruleId) {
                     $rule = Mage::getModel('aws_customersecure/secure')->load($ruleId);
                     $rule->delete();
+                    // if ($rule->isDeleted())
+                    $rule->deleteRuleFromAttribute();
                 }
                 //%d = count $rulesids
                 $this->_getSession()->addSuccess(
