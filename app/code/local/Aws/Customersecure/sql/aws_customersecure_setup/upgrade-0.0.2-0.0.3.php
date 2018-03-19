@@ -22,7 +22,7 @@ $attributeSetId     = $setup->getDefaultAttributeSetId($entityTypeId);
 $attributeGroupId   = $setup->getDefaultAttributeGroupId($entityTypeId, $attributeSetId);
 $attributeCode      = 'email_secure_rule';
 
-$installer->addAttribute('customer', $attributeCode, array(
+$setup->addAttribute('customer', $attributeCode, array(
     'label'             => 'Email Secure Rule',
     'type'              => 'varchar',
     'input'             => '',
@@ -32,7 +32,7 @@ $installer->addAttribute('customer', $attributeCode, array(
     'source'            => '',
     'visible'           => true,
     'required'          => false,
-    'default'           => '',
+    'default'           => null,
     'unique'            => false,
     'note'              => 'Secure rule'
 ));

@@ -7,7 +7,7 @@ class Aws_Customersecure_Block_Adminhtml_Email_Grid extends Mage_Adminhtml_Block
         parent::__construct();
 
         $this->setId('aws_customersecure_grid');
-        $this->setDefaultSort('entity_id');
+        $this->setDefaultSort('rule_name');
         $this->setUseAjax(true);
         $this->setDefaultDir('ASC');
         $this->setSaveParametersInSession(true);
@@ -41,12 +41,12 @@ class Aws_Customersecure_Block_Adminhtml_Email_Grid extends Mage_Adminhtml_Block
         $customerCollection   = Mage::getResourceModel('customer/group_collection');
         $emailGroupCollection = Mage::getResourceModel('aws_customersecure/email_collection');
 
-        $this->addColumn('entity_id', array(
-            'header'    => $helper->__('ID'),
-            'align'     => 'left',
-            'width'     => '50px',
-            'index'     => 'entity_id'
-        ));
+//        $this->addColumn('entity_id', array(
+//            'header'    => $helper->__('ID'),
+//            'align'     => 'left',
+//            'width'     => '50px',
+//            'index'     => 'entity_id'
+//        ));
 
         $this->addColumn('rule_name', array(
             'header'    => $helper->__('Rule Name'),
